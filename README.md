@@ -1,6 +1,6 @@
 # PayHQ SDK for TypeScript/JavaScript
 
-**Version 0.1.0** — first published release. This is a **small, thin TypeScript
+**Version 0.1.1** — This is a **small, thin TypeScript
 wrapper** around the PayHQ (Payfirma) HTTP APIs: OAuth, customers, transactions,
 and card terminals. It focuses on typed requests/responses and auth—not a
 full-featured platform SDK.
@@ -29,7 +29,7 @@ until a stable **1.0.0**.
 ## Installation
 
 ```bash
-npm install @kurli-inc/payhq-sdk@^0.1.0
+npm install @kurli-inc/payhq-sdk@^0.1.1
 ```
 
 Install without a range to get the latest tag; for reproducible builds under

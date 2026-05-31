@@ -7,6 +7,13 @@ and uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-05-30
+
+### Changed
+
+- README aligned with scoped package name (`@kurli-inc/payhq-sdk`) and current SDK API surface.
+- `package.json` name synced to match the published npm package.
+
 ## [0.1.0] - 2026-05-12
 
 Initial public release. This package is a minimal TypeScript wrapper around the
@@ -37,5 +44,6 @@ wrapped. Use the REST API directly with a bearer token from
 - Debug logging is opt-in (`debug: true`) and redacts PAN, CVV, and OAuth-style
   secrets.
 
-[Unreleased]: https://github.com/Kurli-Inc/payhq-sdk/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/Kurli-Inc/payhq-sdk/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/Kurli-Inc/payhq-sdk/releases/tag/v0.1.1
 [0.1.0]: https://github.com/Kurli-Inc/payhq-sdk/releases/tag/v0.1.0
