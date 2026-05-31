@@ -29,7 +29,7 @@ until a stable **1.0.0**.
 ## Installation
 
 ```bash
-npm install payhq-sdk@^0.1.0
+npm install @kurli-inc/payhq-sdk@^0.1.0
 ```
 
 Install without a range to get the latest tag; for reproducible builds under
@@ -42,7 +42,7 @@ consumers get typings from `dist/index.d.ts`.
 ## Quick Start
 
 ```typescript
-import { PayHQSDK } from 'payhq-sdk';
+import { PayHQSDK } from '@kurli-inc/payhq-sdk';
 
 const sdk = new PayHQSDK({
   clientId: 'your-client-id',
@@ -73,6 +73,7 @@ const sdk = new PayHQSDK({
   sandbox: true, // default: false
   timeout: 30000, // optional, ms — default for auth/customer/transaction
   terminalTimeout: 90000, // optional, ms — card-terminal (longer; customer interaction)
+  debug: false, // optional — redacted request/response logging (never logs PAN/CVV/secrets)
   apiUrls: {
     // optional overrides
     auth: 'https://...',
@@ -85,13 +86,14 @@ const sandbox = PayHQSDK.createSandbox('client-id', 'client-secret');
 const prod = PayHQSDK.createProduction('client-id', 'client-secret');
 ```
 
-For card-terminal requests, a longer HTTP client timeout is common because customer interaction (tap, insert, PIN, terminal confirmation) can exceed typical API latency. If you omit both `timeout` and `terminalTimeout`, non-terminal calls still default to **30s** while the terminal client defaults to **90s** (`PAYHQ_DEFAULT_TERMINAL_TIMEOUT_MS`). Override with `terminalTimeout` for terminal-only, or set `timeout` to apply the same value to all services when `terminalTimeout` is not set.
+For card-terminal requests, a longer HTTP client timeout is common because customer interaction (tap, insert, PIN, terminal confirmation) can exceed typical API latency. If you omit both `timeout` and `terminalTimeout`, non-terminal calls still default to **30s** while the terminal client defaults to **90s** (`PAYHQ_DEFAULT_TERMINAL_TIMEOUT_MS`, exported from the package). Override with `terminalTimeout` for terminal-only, or set `timeout` to apply the same value to all services when `terminalTimeout` is not set.
 
 ## Authentication
 
 - **Client credentials (typical):** `await sdk.initialize()` before calling APIs.
 - **OAuth code flow:** `sdk.getAuthorizationUrl(redirectUri, state?, scopes?)` then `await sdk.exchangeCodeForToken(code, redirectUri, state?)`.
-- **Pre-obtained token:** `sdk.setCredentials(accessToken, expiresAt?)`.
+- **Pre-obtained token:** `sdk.setCredentials(accessToken, expiresAt?)` or `await sdk.setCredentialsWithValidation(accessToken, expiresAt?)` (refreshes if expiry is within 5 minutes).
+- **Refresh / revoke:** `await sdk.refreshToken()` · `await sdk.revoke()`.
 - **Status:** `sdk.getAuthStatus()` → `{ isAuthenticated, tokenValid, expiresAt? }`.
 
 ## API Overview
@@ -106,6 +108,7 @@ Use **camelCase** in your code (e.g. `firstName`, `postalCode`). The SDK convert
 - `sdk.transactions.quickAuthorization(...)` / `captureFullAmount(id)` / `capturePartialAmount(id, amount)`
 - `sdk.transactions.fullRefund(transactionId)` / `partialRefund(id, amount, reason?)`
 - `sdk.transactions.getTransaction(id)` / `listTransactions(params?)` / `listUserTransactions(params?)` / `getTransactionSummary(params?)`
+- `listTransactions(params?)` lists account transactions; `listUserTransactions(params?)` maps to `/transaction/user` for the authenticated user's transactions.
 
 ### Customers
 
@@ -113,8 +116,8 @@ Use **camelCase** in your code (e.g. `firstName`, `postalCode`). The SDK convert
 - `sdk.customers.getCustomer(lookupId)` / `updateCustomer(lookupId, partial)` / `listCustomers(params?)`
 - `sdk.customers.addCard(lookupId, cardRequest)` / `updateCard(...)` / `removeCard(...)`
 - Stored-card charges: `sdk.transactions.createSale({ amount, currency, customerLookupId?, cardLookupId?, ... })`
-- Transaction listing scope: `listTransactions(params?)` lists account transactions, while `listUserTransactions(params?)` maps to `/transaction/user` for the authenticated user's transactions.
-- `sdk.customers.createSubscription(lookupId, request)` / `updateSubscription(...)` / `cancelSubscription(...)`
+- `sdk.customers.createSubscription(lookupId, request)` / `updateSubscription(...)` / `cancelSubscription(...)` / `listSubscriptions(lookupId)`
+- `sdk.customers.getDefaultCard(lookupId)` / `setDefaultCard(lookupId, cardLookupId)`
 - `sdk.customers.searchCustomersByEmail(email)` / `searchCustomersByName(first?, last?)`
 
 ### Terminals (card-present)
@@ -149,7 +152,9 @@ import {
   PaymentError,
   ValidationError,
   NetworkError,
-} from 'payhq-sdk';
+  RateLimitError,
+  TimeoutError,
+} from '@kurli-inc/payhq-sdk';
 
 try {
   await sdk.transactions.quickSale(/* ... */);
@@ -166,10 +171,16 @@ try {
   if (err instanceof NetworkError) {
     /* ... */
   }
+  if (err instanceof RateLimitError) {
+    /* HTTP 429 — SDK does not retry; implement backoff in your app */
+  }
+  if (err instanceof TimeoutError) {
+    /* SDK HTTP timeout or fetch abort — increase timeout if needed */
+  }
 }
 ```
 
-On HTTP 429 the SDK throws `RateLimitError`; it does not retry. Implement retries in your app if needed.
+Other exported error types include `ApiError`, `NotFoundError`, `ConfigurationError`, and base `PayHQError`. On HTTP 429 the SDK throws `RateLimitError`; it does not retry.
 
 ## TypeScript
 
@@ -187,8 +198,9 @@ cd payhq-sdk
 nvm use           # honours .nvmrc
 npm install
 npm run build
-npm test          # unit tests (no credentials)
-npm run test:integration   # integration tests (requires sandbox credentials)
+npm run typecheck
+npm test                    # unit tests (no credentials)
+npm run test:integration    # integration tests (requires sandbox credentials; see .env.example)
 npm run lint
 npm run lint:fix
 ```

@@ -1,5 +1,5 @@
 {
-  "name": "payhq-sdk",
+  "name": "@kurli-inc/payhq-sdk",
   "version": "0.1.0",
   "description": "Lightweight TypeScript wrapper for the PayHQ (Payfirma) payment APIs: OAuth, customers, transactions, and card terminals",
   "main": "dist/index.js",
