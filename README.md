@@ -28,12 +28,30 @@ until a stable **1.0.0**.
 
 ## Installation
 
+### npm (default)
+
 ```bash
 npm install @kurli-inc/payhq-sdk@^0.1.1
 ```
 
 Install without a range to get the latest tag; for reproducible builds under
 0.x, prefer pinning `0.1.x` or an exact version.
+
+### GitHub Packages
+
+The same package is also published to GitHub Packages. Add a project or user
+`.npmrc` that maps the `@kurli-inc` scope, then install as usual:
+
+```ini
+@kurli-inc:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=YOUR_GITHUB_PAT
+```
+
+The PAT needs `read:packages`. Then:
+
+```bash
+npm install @kurli-inc/payhq-sdk@^0.1.1
+```
 
 The published package exposes **CommonJS** and **ESM** entry points (`package.json`
 `exports`: `require` → `dist/index.js`, `import` → `dist/index.mjs`). TypeScript

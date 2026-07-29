@@ -54,6 +54,18 @@ Never commit credentials, sandbox or production. `.env` is gitignored.
 - Do not add new top-level public exports without an accompanying test in
   `tests/unit/publicApi.test.ts`.
 
+## Publishing
+
+Releases dual-publish `@kurli-inc/payhq-sdk` to npmjs.org and GitHub Packages
+via [`.github/workflows/publish.yml`](.github/workflows/publish.yml) when a
+GitHub Release is created.
+
+Before the first dual release, ensure the repository has an `NPM_TOKEN` secret
+with publish rights for `@kurli-inc/payhq-sdk` (or configure npm Trusted
+Publishing for this workflow). GitHub Packages uses `GITHUB_TOKEN` and needs no
+extra secret. After the first GPR publish, set package visibility under
+https://github.com/orgs/Kurli-Inc/packages if needed.
+
 ## Scope of this version
 
 `payhq-sdk@0.x` only wraps three Payfirma APIs (Customer, Transaction, Card
